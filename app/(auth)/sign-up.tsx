@@ -2,7 +2,7 @@
 import { icons, images } from "@/constants";
 import { Link, router } from "expo-router";
 import { useState } from "react";
-import { Image, ScrollView, Text, View } from "react-native";
+import { Alert, Image, ScrollView, Text, View } from "react-native";
 import { useSignUp } from "@clerk/clerk-expo";
 
 import CustomButton from "@/components/CustomButton";
@@ -11,7 +11,8 @@ import InputField from "@/components/InputField";
 import ReactNativeModal from "react-native-modal";
 
 const SignUp = () => {
-    const { isLoaded, signUp, setActive } = useSignUp()
+    const { isLoaded, signUp, setActive } = useSignUp();
+    const [showSuccessModal, setShowSuccessModal] = useState(false);
 
     const [form, setForm] = useState({
         name: "",
@@ -20,7 +21,7 @@ const SignUp = () => {
     })
 
     const [verification, setVerification] = useState({
-        state: "pending",
+        state: "default",
         error: "",
         code: ""
     })
@@ -43,7 +44,8 @@ const SignUp = () => {
             state: 'pending'
           })
         } catch (err: any) {
-          console.error(JSON.stringify(err, null, 2))
+          //  console.log(JSON.stringify(err, null, 2));
+          Alert.alert("Error", err.errors[0].longMessage);
         }
       }
     
@@ -127,7 +129,11 @@ const SignUp = () => {
                 </View>
                 <ReactNativeModal
                   isVisible={verification.state === "pending"}
-                  onModalHide={() => setVerification({...verification, state: "success"})}
+                  onModalHide={() => {
+                    if (verification.state === "success") {
+                      setShowSuccessModal(true);
+                    }
+                  }}
                 >
                   <View className="bg-white px-7 py-9 rounded-2xl min-h-[300px]">
                     <Text className="text-2xl font-JakartaExtraBold mb-2">
@@ -160,7 +166,7 @@ const SignUp = () => {
                   </View>
                 </ReactNativeModal>
 
-                <ReactNativeModal isVisible={verification.state === 'success'}>
+                <ReactNativeModal isVisible={showSuccessModal}>
                   <View className="bg-white px-7 py-9 rounded-2xl min-h-[300px]">
                     <Image 
                       source={images.check}
@@ -176,7 +182,10 @@ const SignUp = () => {
                     </Text>
                     <CustomButton 
                       title="Browse Home"
-                      onPress={() => router.push(`/(root)/(tabs)/home`)}
+                      onPress={() => {
+                        setShowSuccessModal(false);
+                        router.push(`/(root)/(tabs)/home`)
+                      }}
                       className="mt-5"
                     />
                   </View>
